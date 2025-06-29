@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>证件照排版工具（多尺寸）</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body class="bg-gray-100 p-6">
+  <div class="max-w-2xl mx-auto bg-white shadow-xl rounded-lg p-6">
+    <h2 class="text-2xl font-bold mb-4 text-gray-800">📸 多尺寸证件照排版工具（5寸相纸）</h2>
+
+    <label class="block mb-3">
+      <span class="text-gray-700">上传证件照：</span>
+      <input id="upload" type="file" accept="image/*"
+        class="mt-1 block w-full text-sm text-gray-600 border rounded p-2">
+    </label>
+
+    <label class="block mb-4">
+      <span class="text-gray-700">选择排版尺寸：</span>
+      <select id="mode" class="mt-1 block w-full border p-2 rounded">
+        <option value="1inch">一寸（25×35mm）</option>
+        <option value="2inch">二寸（35×49mm）</option>
+        <option value="resume2">简历照（二寸）</option>
+        <option value="resume1">简历照（一寸）</option>
+        <option value="large1">大一寸（33×48mm）</option>
+        <option value="small1">小一寸（22×32mm）</option>
+        <option value="small2">小二寸（35×45mm）</option>
+        <option value="large2">大二寸（35×53mm）</option>
+        <option value="card">社保/居住证/身份证（26×32mm）</option>
+        <option value="mix">1寸 + 2寸混排</option>
+      </select>
+    </label>
+
+    <button onclick="layout()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+      排版生成
+    </button>
+  </div>
+
+  <div class="mt-10 px-4 text-center">
+    <h3 class="text-xl font-semibold text-gray-700 mb-2">🖼️ 排版预览：</h3>
+    <div class="overflow-x-auto">
+      <canvas id="canvas" width="1500" height="1050"
+        class="mx-auto border shadow rounded max-w-full"></canvas>
+    </div>
+    <div id="downloadButtons" class="hidden mt-4 space-x-4">
+      <a id="downloadImg" href="#" download="id_photo_5inch.jpg"
+        class="inline-block bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
+        下载图片
+      </a>
+      <button onclick="downloadPDF()"
+        class="inline-block bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700">
+        下载 PDF
+      </button>
+    </div>
+  </div>
+
+  <script>
+    let uploadedImg = null;
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    const sizes = {
+      "1inch":     { w: 295, h: 413 },
+      "2inch":     { w: 413, h: 579 },
+      "resume2":   { w: 413, h: 579 },
+      "resume1":   { w: 295, h: 413 },
+      "large1":    { w: 390, h: 567 },
+      "small1":    { w: 260, h: 378 },
+      "small2":    { w: 413, h: 531 },
+      "large2":    { w: 413, h: 626 },
+      "card":      { w: 307, h: 378 },
+      "mix":       "MIX"
+    };
+
+    document.getElementById('upload').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return alert("请选择图片文件");
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        uploadedImg = new Image();
+        uploadedImg.onload = () => alert("图片上传成功，点击排版生成");
+        uploadedImg.onerror = () => alert("图片加载失败，请确认格式");
+        uploadedImg.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function getCropRect(img, targetW, targetH) {
+      const imgW = img.width, imgH = img.height;
+      const targetRatio = targetW / targetH;
+      const imgRatio = imgW / imgH;
+      let sx, sy, sw, sh;
+      if (imgRatio > targetRatio) {
+        sh = imgH; sw = sh * targetRatio; sx = (imgW - sw) / 2; sy = 0;
+      } else {
+        sw = imgW; sh = sw / targetRatio; sx = 0; sy = (imgH - sh) / 2;
+      }
+      return { sx, sy, sw, sh };
+    }
+
+    function layout() {
+      if (!uploadedImg || !uploadedImg.complete) {
+        alert("请等待图片加载完成");
+        return;
+      }
+
+      const mode = document.getElementById("mode").value;
+      const margin = 30;
+      const maxW = canvas.width, maxH = canvas.height;
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, maxW, maxH);
+
+      if (mode === "mix") {
+        const s1 = sizes["1inch"], s2 = sizes["2inch"];
+        const c1 = getCropRect(uploadedImg, s1.w, s1.h);
+        const c2 = getCropRect(uploadedImg, s2.w, s2.h);
+        let x = margin, y = margin, useS1 = true;
+        while (y + s1.h <= maxH - margin || y + s2.h <= maxH - margin) {
+          const size = useS1 ? s1 : s2;
+          const crop = useS1 ? c1 : c2;
+          if (x + size.w > maxW - margin) {
+            x = margin; y += size.h + margin; useS1 = !useS1;
+            continue;
+          }
+          ctx.drawImage(uploadedImg, crop.sx, crop.sy, crop.sw, crop.sh,
+                        x, y, size.w, size.h);
+          x += size.w + margin;
+        }
+      } else {
+        const size = sizes[mode];
+        const crop = getCropRect(uploadedImg, size.w, size.h);
+        let x = margin, y = margin;
+        while (y + size.h <= maxH - margin) {
+          while (x + size.w <= maxW - margin) {
+            ctx.drawImage(uploadedImg, crop.sx, crop.sy, crop.sw, crop.sh,
+                          x, y, size.w, size.h);
+            x += size.w + margin;
+          }
+          x = margin;
+          y += size.h + margin;
+        }
+      }
+
+      const dataURL = canvas.toDataURL("image/jpeg", 1.0);
+      document.getElementById('downloadImg').href = dataURL;
+      document.getElementById('downloadButtons').classList.remove('hidden');
+    }
+
+    async function downloadPDF() {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [1500, 1050] });
+      const imgData = canvas.toDataURL("image/jpeg", 1.0);
+      pdf.addImage(imgData, 'JPEG', 0, 0, 1500, 1050);
+      pdf.save("id_photo_5inch.pdf");
+    }
+  </script>
+</body>
+</html>
