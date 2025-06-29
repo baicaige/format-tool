@@ -10,79 +10,117 @@
       background-color: #f2f2f2;
       margin: 0;
       padding: 20px 10px;
+      color: #333;
     }
     .container {
       background: #fff;
       max-width: 600px;
       margin: 20px auto 0;
-      padding: 20px;
+      padding: 20px 25px;
       border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
     }
     h2 {
-      font-size: 18px;
-      margin-bottom: 12px;
+      font-size: 20px;
+      margin-bottom: 14px;
       text-align: center;
+      color: #2e7d32;
     }
     textarea {
       width: 100%;
       height: 140px;
-      padding: 10px;
+      padding: 12px 14px;
       font-size: 15px;
       resize: vertical;
       box-sizing: border-box;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+      border: 1.8px solid #ccc;
+      border-radius: 8px;
       transition: border-color 0.3s;
+      font-family: "Courier New", Courier, monospace;
+      background-color: #fafafa;
     }
     textarea:focus {
       border-color: #4caf50;
       outline: none;
+      background-color: #fff;
     }
     button {
-      margin-top: 10px;
-      padding: 10px 18px;
-      font-size: 15px;
+      margin-top: 15px;
+      padding: 12px 18px;
+      font-size: 16px;
       background-color: #4caf50;
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
       width: 100%;
+      font-weight: 600;
+      box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
       transition: background-color 0.3s;
     }
     button:hover {
-      background-color: #45a049;
+      background-color: #43a047;
     }
     #output {
-      margin-top: 15px;
+      margin-top: 20px;
       background: #f9f9f9;
-      padding: 10px;
-      border: 1px solid #ccc;
+      padding: 15px 18px;
+      border: 1px solid #ddd;
       font-size: 14px;
       white-space: pre-wrap;
-      border-radius: 6px;
-      min-height: 40px;
+      border-radius: 8px;
+      min-height: 50px;
+      font-family: "Courier New", Courier, monospace;
+      color: #555;
+      user-select: all;
     }
-    .footer-link {
+    /* 新增工具链接区域 */
+    .tools-section {
+      max-width: 600px;
+      margin: 30px auto 40px;
+      padding: 15px 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 3px 15px rgba(0,0,0,0.08);
       text-align: center;
-      margin-top: 30px;
-      font-size: 14px;
     }
-    .footer-link a {
-      color: #007bff;
-      text-decoration: none;
-      padding: 10px 20px;
-      background: #007bff;
-      border-radius: 6px;
+    .tools-section h3 {
+      margin-bottom: 18px;
+      color: #388e3c;
+      font-weight: 700;
+      font-size: 18px;
+    }
+    .tools-links {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .tools-links a {
       display: inline-block;
+      padding: 12px 25px;
+      background: #4caf50;
       color: white;
-      transition: background-color 0.3s;
-    }
-    .footer-link a:hover {
-      background-color: #0056b3;
       text-decoration: none;
-      color: white;
+      font-weight: 600;
+      border-radius: 8px;
+      box-shadow: 0 3px 8px rgba(76,175,80,0.4);
+      transition: background-color 0.3s, box-shadow 0.3s;
+      min-width: 180px;
+    }
+    .tools-links a:hover {
+      background-color: #388e3c;
+      box-shadow: 0 5px 15px rgba(56,142,60,0.6);
+    }
+    @media (max-width: 440px) {
+      .tools-links {
+        flex-direction: column;
+        gap: 12px;
+      }
+      .tools-links a {
+        min-width: auto;
+        width: 100%;
+      }
     }
   </style>
 </head>
@@ -90,16 +128,22 @@
 
   <div class="container">
     <h2>输入数据（每行一个）</h2>
-    <textarea id="input" placeholder="请输入编号，每行一个"></textarea>
-    <button id="formatBtn">格式化并复制</button>
+    <textarea id="input" placeholder="请输入数据，每行一个"></textarea>
+    <button id="formatBtn">加逗号</button>
     <div id="output"></div>
   </div>
 
-  <div class="footer-link">
-    <a href="https://baicaige.github.io/format-tool/证件照.html" target="_blank" rel="noopener noreferrer">
-      跳转到证件照排版工具 →
-    </a>
-  </div>
+  <section class="tools-section" aria-label="更多工具链接">
+    <h3>更多工具</h3>
+    <div class="tools-links">
+      <a href="https://baicaige.github.io/format-tool/证件照.html" target="_blank" rel="noopener noreferrer">
+        证件照排版工具 →
+      </a>
+      <a href="https://baicaige.github.io/format-tool/mima.html" target="_blank" rel="noopener noreferrer">
+        随机密码工具 →
+      </a>
+    </div>
+  </section>
 
   <script>
     async function formatAndCopy() {
