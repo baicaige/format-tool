@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>随机密码生成器</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+    /* Reset & base */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #4a90e2, #50c9c3);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+        Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 15px;
+      color: #333;
+      user-select: none;
+    }
+    .container {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.15),
+        0 4px 12px rgba(0, 0, 0, 0.08);
+      width: 450px;
+      max-width: 100%;
+      padding: 32px 36px;
+      user-select: text;
+    }
+    h2 {
+      margin: 0 0 28px;
+      font-weight: 700;
+      font-size: 2rem;
+      text-align: center;
+      color: #222;
+      letter-spacing: 1px;
+      user-select: none;
+    }
+
+    /* Length selector */
+    .length-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      font-weight: 600;
+      font-size: 1rem;
+      color: #555;
+      user-select: none;
+    }
+    #lengthValue {
+      background: #0066ff;
+      color: white;
+      padding: 4px 14px;
+      border-radius: 12px;
+      min-width: 36px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+      user-select: none;
+    }
+
+    /* Range slider styling */
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 10px;
+      border-radius: 6px;
+      background: #d9d9d9;
+      outline: none;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      margin-bottom: 28px;
+      user-select: none;
+    }
+    input[type="range"]:hover {
+      background: #c0c0c0;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #0066ff;
+      box-shadow: 0 2px 6px rgba(0, 102, 255, 0.6);
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-top: -8px;
+      user-select: none;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      background: #004ecb;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #0066ff;
+      box-shadow: 0 2px 6px rgba(0, 102, 255, 0.6);
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    input[type="range"]::-moz-range-thumb:hover {
+      background: #004ecb;
+    }
+
+    /* Checkbox styling */
+    label {
+      display: flex;
+      align-items: center;
+      margin-bottom: 18px;
+      font-weight: 500;
+      font-size: 1rem;
+      color: #444;
+      cursor: pointer;
+      user-select: none;
+      gap: 12px;
+      transition: color 0.2s ease;
+    }
+    label:hover {
+      color: #0066ff;
+    }
+    label input[type="checkbox"] {
+      width: 22px;
+      height: 22px;
+      cursor: pointer;
+      accent-color: #0066ff;
+      flex-shrink: 0;
+      user-select: none;
+      transition: accent-color 0.3s ease;
+    }
+
+    /* Button */
+    button {
+      width: 100%;
+      background-color: #0066ff;
+      border: none;
+      padding: 14px 0;
+      border-radius: 12px;
+      color: white;
+      font-weight: 700;
+      font-size: 1.15rem;
+      cursor: pointer;
+      box-shadow: 0 5px 15px rgba(0, 102, 255, 0.4);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      user-select: none;
+    }
+    button:hover {
+      background-color: #004ecb;
+      box-shadow: 0 6px 20px rgba(0, 78, 203, 0.6);
+    }
+    button:active {
+      background-color: #003a9f;
+      box-shadow: none;
+    }
+
+    /* Result box */
+    #result {
+      margin-top: 28px;
+      background: #f4f7ff;
+      padding: 18px 20px;
+      border-radius: 14px;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 1.35rem;
+      text-align: center;
+      user-select: all;
+      word-break: break-word;
+      color: #222;
+      min-height: 52px;
+      box-sizing: border-box;
+      white-space: normal;
+      overflow-wrap: break-word;
+      border: 2px solid transparent;
+      transition: border-color 0.25s ease;
+    }
+    #result:focus {
+      outline: none;
+      border-color: #0066ff;
+      box-shadow: 0 0 6px #66aaff99;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" role="main" aria-label="随机密码生成器">
+    <h2>随机密码生成器</h2>
+
+    <div class="length-container">
+      <label for="length" id="lengthLabel">密码长度:</label>
+      <span id="lengthValue" aria-live="polite" aria-atomic="true">8</span>
+    </div>
+    <input
+      type="range"
+      id="length"
+      min="4"
+      max="32"
+      value="8"
+      aria-labelledby="lengthLabel lengthValue"
+      title="请选择密码长度"
+    />
+
+    <label><input type="checkbox" id="uppercase" checked />包含大写字母 (A-Z)</label>
+    <label><input type="checkbox" id="lowercase" checked />包含小写字母 (a-z)</label>
+    <label><input type="checkbox" id="numbers" checked />包含数字 (0-9)</label>
+    <label><input type="checkbox" id="symbols" />包含特殊符号 (!@#$...)</label>
+
+    <button id="generateBtn" aria-describedby="resultDescription">生成密码</button>
+
+    <div
+      id="result"
+      tabindex="0"
+      role="textbox"
+      aria-label="生成的密码，点击可复制"
+      title="点击复制密码"
+      aria-live="polite"
+      aria-atomic="true"
+    ></div>
+    <div id="resultDescription" style="position:absolute; left:-9999px; top:auto; width:1px; height:1px; overflow:hidden;">
+      生成的密码显示在此框，点击密码可复制到剪贴板。
+    </div>
+  </div>
+
+  <script>
+    const uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const lowercaseChars = "abcdefghijklmnopqrstuvwxyz";
+    const numberChars = "0123456789";
+    const symbolChars = "!@#$%^&*()-_=+[]{}|;:,.<>/?";
+
+    const lengthInput = document.getElementById("length");
+    const lengthValueSpan = document.getElementById("lengthValue");
+    const uppercaseCheckbox = document.getElementById("uppercase");
+    const lowercaseCheckbox = document.getElementById("lowercase");
+    const numbersCheckbox = document.getElementById("numbers");
+    const symbolsCheckbox = document.getElementById("symbols");
+    const generateBtn = document.getElementById("generateBtn");
+    const resultDiv = document.getElementById("result");
+
+    lengthInput.addEventListener("input", () => {
+      lengthValueSpan.textContent = lengthInput.value;
+    });
+
+    function generatePassword() {
+      const length = parseInt(lengthInput.value, 10);
+
+      if (isNaN(length) || length < 4 || length > 32) {
+        alert("请输入4到32之间的有效密码长度");
+        return;
+      }
+
+      let charPool = "";
+      if (uppercaseCheckbox.checked) charPool += uppercaseChars;
+      if (lowercaseCheckbox.checked) charPool += lowercaseChars;
+      if (numbersCheckbox.checked) charPool += numberChars;
+      if (symbolsCheckbox.checked) charPool += symbolChars;
+
+      if (!charPool) {
+        alert("请至少选择一种字符类型");
+        return;
+      }
+
+      let password = "";
+      for (let i = 0; i < length; i++) {
+        const idx = Math.floor(Math.random() * charPool.length);
+        password += charPool[idx];
+      }
+
+      resultDiv.textContent = password;
+      resultDiv.focus();
+    }
+
+    generateBtn.addEventListener("click", generatePassword);
+
+    // 点击复制密码到剪贴板
+    resultDiv.addEventListener("click", () => {
+      const text = resultDiv.textContent;
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        alert("密码已复制到剪贴板");
+      });
+    });
+  </script>
+</body>
+</html>
