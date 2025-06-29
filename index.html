@@ -60,6 +60,21 @@
       font-size: 14px;
       white-space: pre-wrap;
     }
+
+    .footer-link {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 14px;
+    }
+
+    .footer-link a {
+      color: #007BFF;
+      text-decoration: none;
+    }
+
+    .footer-link a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -71,10 +86,20 @@
     <div id="output"></div>
   </div>
 
+
+  <div style="text-align:center; margin-top: 30px;">
+  <a href="https://baicaige.github.io/format-tool/证件照.html" target="_blank"
+     style="display:inline-block; padding:10px 20px; background:#007bff; color:white; border-radius:6px; text-decoration:none;">
+    跳转到证件照排版工具 →
+  </a>
+</div>
+
+  
+
   <script>
     function formatAndCopy() {
       const input = document.getElementById('input').value.trim();
-      const lines = input.split('\n').map(line => line.trim()).filter(Boolean);
+      const lines = input.split('\\n').map(line => line.trim()).filter(Boolean);
 
       const formattedGroups = [];
       for (let i = 0; i < lines.length; i += 6) {
@@ -82,7 +107,7 @@
         formattedGroups.push(group.join(', '));
       }
 
-      const finalResult = formattedGroups.join(',\n');
+      const finalResult = formattedGroups.join(',\\n');
 
       // 显示格式化结果
       document.getElementById('output').textContent = finalResult;
