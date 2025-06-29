@@ -1,57 +1,71 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-  <meta charset="UTF-8">
-  <title>证件照排版工具（多尺寸）</title>
+  <meta charset="UTF-8" />
+  <title>证件照排版工具</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
-<body class="bg-gray-100 p-6">
-  <div class="max-w-2xl mx-auto bg-white shadow-xl rounded-lg p-6">
-    <h2 class="text-2xl font-bold mb-4 text-gray-800">📸 多尺寸证件照排版工具（5寸相纸）</h2>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center py-10">
 
-    <label class="block mb-3">
-      <span class="text-gray-700">上传证件照：</span>
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-8 space-y-6">
+
+    <header class="text-center">
+      <h1 class="text-3xl font-bold text-gray-800 mb-1">📸 证件照排版工具</h1>
+      <p class="text-gray-500 text-sm">排版输出适用于 5 寸相纸，支持多种标准尺寸</p>
+    </header>
+
+    <!-- 上传 -->
+    <div>
+      <label class="block text-gray-700 font-medium mb-1">上传证件照</label>
       <input id="upload" type="file" accept="image/*"
-        class="mt-1 block w-full text-sm text-gray-600 border rounded p-2">
-    </label>
+             class="w-full border border-gray-300 rounded-lg p-3 text-sm text-gray-700 focus:ring-blue-500 focus:border-blue-500" />
+    </div>
 
-    <label class="block mb-4">
-      <span class="text-gray-700">选择排版尺寸：</span>
-      <select id="mode" class="mt-1 block w-full border p-2 rounded">
+    <!-- 尺寸选择 -->
+    <div>
+      <label class="block text-gray-700 font-medium mb-1">选择排版尺寸</label>
+      <select id="mode"
+              class="w-full border border-gray-300 rounded-lg p-3 text-sm text-gray-700 focus:ring-blue-500 focus:border-blue-500">
         <option value="1inch">一寸（25×35mm）</option>
         <option value="2inch">二寸（35×49mm）</option>
-        <option value="resume2">简历照（二寸）</option>
-        <option value="resume1">简历照（一寸）</option>
         <option value="large1">大一寸（33×48mm）</option>
         <option value="small1">小一寸（22×32mm）</option>
         <option value="small2">小二寸（35×45mm）</option>
         <option value="large2">大二寸（35×53mm）</option>
-        <option value="card">社保/居住证/身份证（26×32mm）</option>
+        <option value="card">社保/身份证（26×32mm）</option>
         <option value="mix">1寸 + 2寸混排</option>
       </select>
-    </label>
-
-    <button onclick="layout()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-      排版生成
-    </button>
-  </div>
-
-  <div class="mt-10 px-4 text-center">
-    <h3 class="text-xl font-semibold text-gray-700 mb-2">🖼️ 排版预览：</h3>
-    <div class="overflow-x-auto">
-      <canvas id="canvas" width="1500" height="1050"
-        class="mx-auto border shadow rounded max-w-full"></canvas>
     </div>
-    <div id="downloadButtons" class="hidden mt-4 space-x-4">
-      <a id="downloadImg" href="#" download="id_photo_5inch.jpg"
-        class="inline-block bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
-        下载图片
-      </a>
-      <button onclick="downloadPDF()"
-        class="inline-block bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700">
-        下载 PDF
+
+    <!-- 生成按钮 -->
+    <div>
+      <button onclick="layout()"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition duration-200">
+        排版生成
       </button>
+    </div>
+
+    <!-- 预览区 -->
+    <div id="previewSection" class="hidden space-y-4">
+      <h2 class="text-center text-lg font-semibold text-gray-700">🖼️ 排版预览</h2>
+      <div class="overflow-x-auto">
+        <canvas id="canvas" width="1500" height="1050"
+                class="mx-auto border rounded-lg shadow max-w-full"></canvas>
+      </div>
+
+      <!-- 下载按钮 -->
+      <div id="downloadButtons" class="flex flex-col sm:flex-row justify-center items-center gap-4">
+        <a id="downloadImg" href="#" download="id_photo_5inch.jpg"
+           class="w-full sm:w-auto text-center bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-lg transition duration-200">
+          下载图片
+        </a>
+        <button onclick="downloadPDF()"
+                class="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-3 rounded-lg transition duration-200">
+          下载 PDF
+        </button>
+      </div>
     </div>
   </div>
 
@@ -63,16 +77,14 @@
     ctx.imageSmoothingQuality = 'high';
 
     const sizes = {
-      "1inch":     { w: 295, h: 413 },
-      "2inch":     { w: 413, h: 579 },
-      "resume2":   { w: 413, h: 579 },
-      "resume1":   { w: 295, h: 413 },
-      "large1":    { w: 390, h: 567 },
-      "small1":    { w: 260, h: 378 },
-      "small2":    { w: 413, h: 531 },
-      "large2":    { w: 413, h: 626 },
-      "card":      { w: 307, h: 378 },
-      "mix":       "MIX"
+      "1inch":   { w: 295, h: 413 },
+      "2inch":   { w: 413, h: 579 },
+      "large1":  { w: 390, h: 567 },
+      "small1":  { w: 260, h: 378 },
+      "small2":  { w: 413, h: 531 },
+      "large2":  { w: 413, h: 626 },
+      "card":    { w: 307, h: 378 },
+      "mix":     "MIX"
     };
 
     document.getElementById('upload').addEventListener('change', (e) => {
@@ -82,7 +94,10 @@
       const reader = new FileReader();
       reader.onload = function(evt) {
         uploadedImg = new Image();
-        uploadedImg.onload = () => alert("图片上传成功，点击排版生成");
+        uploadedImg.onload = () => {
+          alert("图片上传成功，点击『排版生成』");
+          document.getElementById('previewSection').classList.add('hidden');
+        };
         uploadedImg.onerror = () => alert("图片加载失败，请确认格式");
         uploadedImg.src = evt.target.result;
       };
@@ -126,8 +141,7 @@
             x = margin; y += size.h + margin; useS1 = !useS1;
             continue;
           }
-          ctx.drawImage(uploadedImg, crop.sx, crop.sy, crop.sw, crop.sh,
-                        x, y, size.w, size.h);
+          ctx.drawImage(uploadedImg, crop.sx, crop.sy, crop.sw, crop.sh, x, y, size.w, size.h);
           x += size.w + margin;
         }
       } else {
@@ -136,8 +150,7 @@
         let x = margin, y = margin;
         while (y + size.h <= maxH - margin) {
           while (x + size.w <= maxW - margin) {
-            ctx.drawImage(uploadedImg, crop.sx, crop.sy, crop.sw, crop.sh,
-                          x, y, size.w, size.h);
+            ctx.drawImage(uploadedImg, crop.sx, crop.sy, crop.sw, crop.sh, x, y, size.w, size.h);
             x += size.w + margin;
           }
           x = margin;
@@ -147,7 +160,7 @@
 
       const dataURL = canvas.toDataURL("image/jpeg", 1.0);
       document.getElementById('downloadImg').href = dataURL;
-      document.getElementById('downloadButtons').classList.remove('hidden');
+      document.getElementById('previewSection').classList.remove('hidden');
     }
 
     async function downloadPDF() {
