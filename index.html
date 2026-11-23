@@ -52,6 +52,7 @@ a { color: #085da3 }
       <button id="splitBtn" type="submit">拆分 TXT</button>
     </form>
     <p id="status" role="status">文件在浏览器本地处理。</p>
+    <button id="saveFolder" type="button" hidden>保存全部到文件夹</button>
     <ol id="downloads"></ol>
   </section>
   <section id="formatter">
@@ -99,11 +100,57 @@ a { color: #085da3 }
   const status = document.getElementById("status");
   const csv = document.getElementById("csv");
   const size = document.getElementById("size");
-  let urls = [];
+  const saveFolder = document.getElementById("saveFolder");
+  let files = [];
+
+  saveFolder.addEventListener("click", async () => {
+    const splitButton = document.getElementById("splitBtn");
+    saveFolder.disabled = splitButton.disabled = csv.disabled = size.disabled = true;
+    let saved = 0;
+    let skipped = 0;
+    try {
+      if (!window.showDirectoryPicker) {
+        status.textContent = "当前浏览器不支持选择文件夹。请使用桌面版 Chrome 或 Edge，或逐个下载。";
+        return;
+      }
+      const folder = await window.showDirectoryPicker({ mode: "readwrite" });
+      for (const file of files) {
+        try {
+          await folder.getFileHandle(file.name);
+          skipped++;
+          continue;
+        } catch (error) {
+          if (error.name === "TypeMismatchError") {
+            skipped++;
+            continue;
+          }
+          if (error.name !== "NotFoundError") throw error;
+        }
+        const handle = await folder.getFileHandle(file.name, { create: true });
+        const writer = await handle.createWritable();
+        try {
+          await writer.write(file.blob);
+          await writer.close();
+        } catch (error) {
+          await writer.abort().catch(() => {});
+          throw error;
+        }
+        saved++;
+      }
+      status.textContent = `已保存 ${saved} 个 TXT，跳过同名项 ${skipped} 个。`;
+    } catch (error) {
+      status.textContent = error.name === "AbortError" && !saved && !skipped
+        ? "已取消或未获得文件夹访问权限。"
+        : `保存中断。已保存 ${saved} 个，跳过 ${skipped} 个。${error.message}`;
+    } finally {
+      saveFolder.disabled = splitButton.disabled = csv.disabled = size.disabled = false;
+    }
+  });
 
   function clearDownloads() {
-    urls.forEach(url => URL.revokeObjectURL(url));
-    urls = [];
+    files.forEach(file => URL.revokeObjectURL(file.url));
+    files = [];
+    saveFolder.hidden = true;
     downloads.replaceChildren();
   }
 
@@ -131,15 +178,17 @@ a { color: #085da3 }
         const end = Math.min(start + batch, ids.length);
         const data = ids.slice(start, end).join("\n") + "\n";
         const link = document.createElement("a");
-        link.href = URL.createObjectURL(new Blob([data], { type: "text/plain;charset=utf-8" }));
-        urls.push(link.href);
+        const blob = new Blob([data], { type: "text/plain;charset=utf-8" });
+        link.href = URL.createObjectURL(blob);
         link.download = link.textContent = `${base}-${start + 1}-${end}.txt`;
+        files.push({ name: link.download, blob, url: link.href });
         const item = document.createElement("li");
         item.append(link);
         list.append(item);
       }
       downloads.append(list);
-      status.textContent = `${ids.length} 条 OpenID，共 ${urls.length} 个 TXT。`;
+      saveFolder.hidden = false;
+      status.textContent = `${ids.length} 条 OpenID，共 ${files.length} 个 TXT。`;
     } catch (error) {
       clearDownloads();
       status.textContent = error.message;
