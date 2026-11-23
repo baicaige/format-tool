@@ -103,17 +103,17 @@ a { color: #085da3 }
   const saveFolder = document.getElementById("saveFolder");
   let files = [];
 
-  saveFolder.addEventListener("click", async () => {
+  async function saveAll(folder) {
     const splitButton = document.getElementById("splitBtn");
     saveFolder.disabled = splitButton.disabled = csv.disabled = size.disabled = true;
     let saved = 0;
     let skipped = 0;
     try {
-      if (!window.showDirectoryPicker) {
+      if (!folder && !window.showDirectoryPicker) {
         status.textContent = "当前浏览器不支持选择文件夹。请使用桌面版 Chrome 或 Edge，或逐个下载。";
         return;
       }
-      const folder = await window.showDirectoryPicker({ mode: "readwrite" });
+      folder ??= await window.showDirectoryPicker({ mode: "readwrite" });
       for (const file of files) {
         try {
           await folder.getFileHandle(file.name);
@@ -145,7 +145,8 @@ a { color: #085da3 }
     } finally {
       saveFolder.disabled = splitButton.disabled = csv.disabled = size.disabled = false;
     }
-  });
+  }
+  saveFolder.addEventListener("click", () => saveAll());
 
   function clearDownloads() {
     files.forEach(file => URL.revokeObjectURL(file.url));
@@ -171,6 +172,17 @@ a { color: #085da3 }
     button.disabled = csv.disabled = size.disabled = true;
     status.textContent = "正在读取 CSV…";
     try {
+      let folder;
+      let folderMessage = "";
+      if (window.showDirectoryPicker) {
+        try {
+          folder = await window.showDirectoryPicker({ mode: "readwrite" });
+        } catch (error) {
+          folderMessage = error.name === "AbortError"
+            ? " 已取消选择文件夹，仍可下载下方文件。"
+            : " 无法选择文件夹，仍可下载下方文件。";
+        }
+      }
       const ids = extractOpenIds(await file.text());
       const base = file.name.replace(/\.csv$/i, "");
       const list = document.createDocumentFragment();
@@ -188,7 +200,8 @@ a { color: #085da3 }
       }
       downloads.append(list);
       saveFolder.hidden = false;
-      status.textContent = `${ids.length} 条 OpenID，共 ${files.length} 个 TXT。`;
+      status.textContent = `${ids.length} 条 OpenID，共 ${files.length} 个 TXT。${folderMessage}`;
+      if (folder) await saveAll(folder);
     } catch (error) {
       clearDownloads();
       status.textContent = error.message;
