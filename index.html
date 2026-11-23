@@ -73,7 +73,9 @@ body.suite { display:block; margin:0; padding:0; color:var(--ink); background:va
   <section class="suite-panel" id="openid">
     <h1>OpenID 拆分</h1>
     <form id="split">
-      <label>微信粉丝 CSV <input id="csv" type="file" accept=".csv,text/csv" required></label>
+      <label>Excel 或 CSV <input id="csv" type="file" accept=".xlsx,.xls,.csv" required></label>
+      <label>提取列 <input id="sourceColumn" value="A" size="5" maxlength="3" pattern="[A-Za-z]{1,3}" required></label>
+      <label><span><input id="skipHeader" type="checkbox" checked> 首行是表头</span></label>
       <label>每个 TXT 的条数
         <select id="size"><option>100</option><option>200</option><option selected>500</option><option>1000</option><option>2000</option><option>3000</option><option>5000</option><option>10000</option><option>15000</option><option>20000</option><option>30000</option><option>50000</option><option>100000</option></select>
       </label>
@@ -90,6 +92,7 @@ body.suite { display:block; margin:0; padding:0; color:var(--ink); background:va
     <pre id="output"></pre>
   </section>
 </main>
+<script src="../excel-splitter/vendor/xlsx.full.min.js"></script>
 <script>
   // Quoted CSV fields can contain commas, line breaks and escaped quotes.
   function* csvRows(text) {
@@ -107,32 +110,43 @@ body.suite { display:block; margin:0; padding:0; color:var(--ink); background:va
     if (row.length) yield [...row, ""];
   }
 
-  function extractOpenIds(text) {
-    const rows = csvRows(text.replace(/^\uFEFF/, ""));
-    const header = rows.next().value || [];
-    const col = header.findIndex(value => value.trim().toLowerCase() === "openid");
-    if (col < 0) throw new Error("CSV 缺少 openid 列。");
+  function extractColumn(rows, column, skipHeader) {
     const ids = [];
     for (const row of rows) {
-      const id = row[col]?.trim();
+      if (skipHeader) {
+        skipHeader = false;
+        continue;
+      }
+      const id = String(row[column] ?? "").trim();
       if (!id) continue;
-      if (/[\r\n]/.test(id)) throw new Error("OpenID 字段包含换行。");
+      if (/[\r\n]/.test(id)) throw new Error("所选列包含换行，无法按每行一条导出。");
       ids.push(id);
     }
-    if (!ids.length) throw new Error("没有可导出的 OpenID。");
+    if (!ids.length) throw new Error("所选列没有可导出的数据。");
     return ids;
+  }
+
+  async function readRows(file) {
+    if (/\.csv$/i.test(file.name)) return csvRows((await file.text()).replace(/^\uFEFF/, ""));
+    if (!window.XLSX) throw new Error("Excel 解析组件加载失败，请刷新后重试。");
+    const book = XLSX.read(await file.arrayBuffer());
+    const sheet = book.Sheets[book.SheetNames[0]];
+    if (!sheet) throw new Error("Excel 文件没有可读取的工作表。");
+    return XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, range: 0 });
   }
 
   const downloads = document.getElementById("downloads");
   const status = document.getElementById("status");
   const csv = document.getElementById("csv");
+  const sourceColumn = document.getElementById("sourceColumn");
+  const skipHeader = document.getElementById("skipHeader");
   const size = document.getElementById("size");
   const saveFolder = document.getElementById("saveFolder");
   let files = [];
 
   async function saveAll(folder) {
     const splitButton = document.getElementById("splitBtn");
-    saveFolder.disabled = splitButton.disabled = csv.disabled = size.disabled = true;
+    saveFolder.disabled = splitButton.disabled = csv.disabled = size.disabled = sourceColumn.disabled = skipHeader.disabled = true;
     let saved = 0;
     let skipped = 0;
     try {
@@ -170,7 +184,7 @@ body.suite { display:block; margin:0; padding:0; color:var(--ink); background:va
         ? "已取消或未获得文件夹访问权限。"
         : `保存中断。已保存 ${saved} 个，跳过 ${skipped} 个。${error.message}`;
     } finally {
-      saveFolder.disabled = splitButton.disabled = csv.disabled = size.disabled = false;
+      saveFolder.disabled = splitButton.disabled = csv.disabled = size.disabled = sourceColumn.disabled = skipHeader.disabled = false;
     }
   }
   saveFolder.addEventListener("click", () => saveAll());
@@ -182,7 +196,7 @@ body.suite { display:block; margin:0; padding:0; color:var(--ink); background:va
     downloads.replaceChildren();
   }
 
-  for (const control of [csv, size]) {
+  for (const control of [csv, size, sourceColumn, skipHeader]) {
     control.addEventListener("change", () => {
       clearDownloads();
       status.textContent = "等待拆分。";
@@ -194,10 +208,12 @@ body.suite { display:block; margin:0; padding:0; color:var(--ink); background:va
     const button = document.getElementById("splitBtn");
     const file = csv.files[0];
     const batch = Number(size.value);
+    const column = [...sourceColumn.value.toUpperCase()].reduce((n, letter) => n * 26 + letter.charCodeAt(0) - 64, 0) - 1;
+    const hasHeader = skipHeader.checked;
     if (!file || !Number.isInteger(batch) || batch < 1) return;
     clearDownloads();
-    button.disabled = csv.disabled = size.disabled = true;
-    status.textContent = "正在读取 CSV…";
+    button.disabled = csv.disabled = size.disabled = sourceColumn.disabled = skipHeader.disabled = true;
+    status.textContent = "正在读取文件…";
     try {
       let folder;
       let folderMessage = "";
@@ -210,8 +226,8 @@ body.suite { display:block; margin:0; padding:0; color:var(--ink); background:va
             : " 无法选择文件夹，仍可下载下方文件。";
         }
       }
-      const ids = extractOpenIds(await file.text());
-      const base = file.name.replace(/\.csv$/i, "");
+      const ids = extractColumn(await readRows(file), column, hasHeader);
+      const base = file.name.replace(/\.(?:csv|xlsx|xls)$/i, "");
       const list = document.createDocumentFragment();
       for (let start = 0; start < ids.length; start += batch) {
         const end = Math.min(start + batch, ids.length);
@@ -227,13 +243,13 @@ body.suite { display:block; margin:0; padding:0; color:var(--ink); background:va
       }
       downloads.append(list);
       saveFolder.hidden = false;
-      status.textContent = `${ids.length} 条 OpenID，共 ${files.length} 个 TXT。${folderMessage}`;
+      status.textContent = `${ids.length} 条数据，共 ${files.length} 个 TXT。${folderMessage}`;
       if (folder) await saveAll(folder);
     } catch (error) {
       clearDownloads();
       status.textContent = error.message;
     } finally {
-      button.disabled = csv.disabled = size.disabled = false;
+      button.disabled = csv.disabled = size.disabled = sourceColumn.disabled = skipHeader.disabled = false;
     }
   });
 
