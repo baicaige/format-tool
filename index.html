@@ -32,17 +32,45 @@ a { color: #085da3 }
   main, section { padding: 14px }
 }
 </style>
-<header>白菜的小工具</header>
-<div class="layout">
-<nav aria-label="工具导航">
-  <a href="#openid" aria-current="location">OpenID 拆分</a>
-  <a href="#formatter">每行数据加逗号</a>
-  <a href="https://baicaige.github.io/excel-splitter/">Excel 拆分</a>
-  <a href="zhengjianzhao.html">证件照排版</a>
-  <a href="mima.html">随机密码</a>
-</nav>
-<main>
-  <section id="openid">
+<style>
+:root { color-scheme:light; --accent:#0066cc; --ink:#1d1d1f; --line:#dedee3; --surface:#f5f5f7 }
+body.suite { display:block; margin:0; padding:0; color:var(--ink); background:var(--surface); font:16px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI",sans-serif }
+.suite * { box-sizing:border-box }
+.suite .tool-nav { background:#fff; color:var(--ink); border-bottom:1px solid var(--line); padding:0; margin:0 }
+.suite .tool-nav nav { display:flex; flex-wrap:wrap; align-items:center; gap:6px 28px; max-width:1100px; margin:auto; padding:12px 22px; background:none; border:0 }
+.suite .tool-nav nav div { display:flex; flex-wrap:wrap; gap:4px 18px }
+.suite .tool-nav a { display:inline-block; background:none; color:var(--ink); padding:4px 0; text-decoration:none; white-space:nowrap; font-size:14px }
+.suite .tool-nav a.brand { font-size:19px; font-weight:700 }
+.suite .tool-nav a:hover,.suite .tool-nav a[aria-current] { color:var(--accent) }
+.suite .suite-main,.suite .shell { width:min(100%,1050px); margin:auto; padding:24px 22px }
+.suite .suite-panel,.suite .hero,.suite .upload-panel,.suite .summary-panel,.suite .log-panel,.suite .related-panel { background:white; border:1px solid var(--line); border-radius:8px; box-shadow:none }
+.suite .suite-panel { padding:22px; margin:0 0 16px }
+.suite h1,.suite h2 { color:var(--ink); text-align:left; letter-spacing:0; padding:0; border:0 }
+.suite h1 { font-size:28px; line-height:1.2; margin:0 0 16px }
+.suite h2 { font-size:21px; margin:0 0 12px }
+.suite input,.suite select,.suite textarea,.suite button { font:inherit; max-width:100%; accent-color:var(--accent) }
+.suite button,.suite #downloadImg { background:var(--accent); color:white; border:0; border-radius:8px; padding:8px 15px; box-shadow:none; cursor:pointer }
+.suite button:hover:not(:disabled),.suite #downloadImg:hover { background:#0054a9 }
+.suite button:disabled { opacity:.55; cursor:default }
+.suite :focus-visible { outline:2px solid var(--accent); outline-offset:3px }
+.suite #output,.suite #result { background:var(--surface); color:var(--ink); border-radius:8px; box-shadow:none; overflow-wrap:anywhere }
+.suite #output:empty,.suite #result:empty { display:none }
+.suite .hero-panel,.suite .drop-zone,.suite .stats div { background:var(--surface); color:var(--ink); box-shadow:none }
+.suite .hero-panel p,.suite .subtitle,.suite .hero-panel strong { color:var(--ink) }
+.suite .hero-panel > span,.suite .hero .eyebrow { display:none }
+.suite canvas { height:auto; max-width:100% }
+.suite .container.suite-panel { max-width:none; width:auto; margin:0; transform:none }
+.suite .container > label { display:flex; gap:8px; align-items:center; margin:10px 0; background:none; box-shadow:none }
+.suite #length { width:100%; appearance:auto }
+@media(max-width:650px) {
+  .suite .tool-nav nav { padding:9px 14px; gap:3px 14px }
+  .suite .suite-main,.suite .shell { padding:14px }
+  .suite .suite-panel { padding:16px }
+  .suite h1 { font-size:23px }
+}
+</style>
+<body class="suite"><header class="tool-nav"><nav aria-label="工具导航"><a class="brand" href="https://baicaige.github.io/format-tool/">白菜的小工具</a><div><a href="https://baicaige.github.io/format-tool/#openid" aria-current="page">OpenID 拆分</a><a href="https://baicaige.github.io/excel-splitter/">Excel 拆分</a><a href="https://baicaige.github.io/format-tool/zhengjianzhao.html">证件照排版</a><a href="https://baicaige.github.io/format-tool/mima.html">随机密码</a></div></nav></header><main class="suite-main">
+  <section class="suite-panel" id="openid">
     <h1>OpenID 拆分</h1>
     <form id="split">
       <label>微信粉丝 CSV <input id="csv" type="file" accept=".csv,text/csv" required></label>
@@ -55,14 +83,13 @@ a { color: #085da3 }
     <button id="saveFolder" type="button" hidden>保存全部到文件夹</button>
     <ol id="downloads"></ol>
   </section>
-  <section id="formatter">
+  <section class="suite-panel" id="formatter">
     <h2>每行数据加逗号</h2>
     <textarea id="input" aria-label="原始文本" placeholder="请输入数据，每行一个"></textarea>
     <button id="formatBtn" type="button">格式化并复制</button>
     <pre id="output"></pre>
   </section>
 </main>
-</div>
 <script>
   // Quoted CSV fields can contain commas, line breaks and escaped quotes.
   function* csvRows(text) {
@@ -244,5 +271,6 @@ a { color: #085da3 }
 
     document.getElementById("formatBtn").addEventListener("click", formatAndCopy);
   </script>
+</body>
 </body>
 </html>
