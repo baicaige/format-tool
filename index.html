@@ -1,326 +1,153 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>白菜的小工具</title>
-  <style>
-    :root {
-      --bg: #f4f7fb;
-      --paper: #ffffff;
-      --ink: #172033;
-      --muted: #647084;
-      --line: #d9e1ec;
-      --blue: #185a9d;
-      --green: #1f8a70;
-      --soft-blue: #eaf4ff;
-      --soft-green: #e8f7f2;
-      --shadow: 0 18px 44px rgba(23, 32, 51, 0.1);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--ink);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-      font-size: 16px;
-      line-height: 1.55;
-    }
-
-    button,
-    textarea {
-      font: inherit;
-    }
-
-    .shell {
-      width: min(1120px, calc(100% - 32px));
-      margin: 0 auto;
-      padding: 28px 0 48px;
-    }
-
-    .hero,
-    .formatter,
-    .tool-card {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--paper);
-      box-shadow: var(--shadow);
-    }
-
-    .hero {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 310px;
-      gap: 20px;
-      margin-bottom: 20px;
-    }
-
-    .hero-main {
-      padding: 34px;
-      color: #fff;
-      background: linear-gradient(135deg, #123d6b, #185a9d 52%, #1f8a70);
-    }
-
-    .hero-side {
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .eyebrow {
-      margin: 0 0 8px;
-      color: inherit;
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 0;
-    }
-
-    h1,
-    h2,
-    h3 {
-      margin: 0;
-      letter-spacing: 0;
-      line-height: 1.16;
-    }
-
-    h1 {
-      font-size: clamp(38px, 6vw, 68px);
-    }
-
-    h2 {
-      font-size: 24px;
-    }
-
-    .subtitle {
-      max-width: 760px;
-      margin: 14px 0 0;
-      font-size: 20px;
-    }
-
-    .badge {
-      width: max-content;
-      max-width: 100%;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: var(--soft-green);
-      color: var(--green);
-      font-weight: 800;
-      font-size: 13px;
-    }
-
-    .hero-side strong {
-      font-size: 26px;
-      line-height: 1.2;
-    }
-
-    .hero-side p,
-    .section-head p,
-    .tool-card p {
-      margin: 0;
-      color: var(--muted);
-    }
-
-    .formatter {
-      padding: 22px;
-    }
-
-    .section-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 18px;
-      align-items: end;
-      margin-bottom: 16px;
-    }
-
-    textarea {
-      width: 100%;
-      min-height: 150px;
-      padding: 14px;
-      resize: vertical;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #fbfdff;
-      color: var(--ink);
-      font-family: "Courier New", Courier, monospace;
-    }
-
-    textarea:focus {
-      border-color: var(--blue);
-      outline: none;
-      background: #fff;
-      box-shadow: 0 0 0 3px rgba(24, 90, 157, 0.12);
-    }
-
-    .primary-button,
-    .tool-card a {
-      min-height: 48px;
-      border: 0;
-      border-radius: 8px;
-      background: var(--blue);
-      color: #fff;
-      font-weight: 800;
-      cursor: pointer;
-      text-decoration: none;
-    }
-
-    .primary-button {
-      width: 100%;
-      margin-top: 14px;
-      padding: 0 18px;
-    }
-
-    #output {
-      margin-top: 16px;
-      min-height: 70px;
-      padding: 14px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #0f1724;
-      color: #dce9ff;
-      white-space: pre-wrap;
-      user-select: all;
-      font-family: "Courier New", Courier, monospace;
-      font-size: 14px;
-    }
-
-    .tools-section {
-      margin-top: 20px;
-    }
-
-    .tools-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-      margin-top: 14px;
-    }
-
-    .tool-card {
-      min-height: 190px;
-      padding: 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .tool-icon {
-      display: grid;
-      place-items: center;
-      width: 52px;
-      height: 52px;
-      border-radius: 8px;
-      background: var(--soft-blue);
-      color: var(--blue);
-      font-weight: 900;
-    }
-
-    .tool-card a {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      margin-top: auto;
-      padding: 0 14px;
-    }
-
-    .tool-card.featured {
-      border-color: rgba(31, 138, 112, 0.35);
-      background: linear-gradient(180deg, #ffffff, #f6fffb);
-    }
-
-    .tool-card.featured .tool-icon,
-    .tool-card.featured a {
-      background: var(--green);
-      color: #fff;
-    }
-
-    @media (max-width: 860px) {
-      .hero,
-      .tools-grid {
-        grid-template-columns: 1fr;
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>白菜的小工具</title>
+<style>
+* { box-sizing: border-box }
+body { margin: 0; background: #f2f4f7; color: #232a34; font: 16px/1.6 system-ui, sans-serif }
+header { background: #303949; color: white; padding: 13px 24px; font-size: 21px; font-weight: 700 }
+.layout { display: grid; grid-template-columns: 215px minmax(0, 1fr); min-height: calc(100vh - 60px) }
+nav { background: #fafafa; padding: 18px 12px; border-right: 1px solid #e2e5ea }
+nav a { display: block; padding: 9px 12px; color: #394250; text-decoration: none; border-radius: 6px }
+nav a[aria-current] { background: #c8420d; color: white }
+nav a:hover:not([aria-current]) { background: #e9edf2 }
+main { width: 100%; max-width: 1050px; padding: 24px }
+section { background: white; padding: 22px; margin-bottom: 16px; border: 1px solid #e2e5ea }
+h1,h2 { margin: 0 0 18px; font-size: 21px; border-left: 4px solid #0879d5; padding-left: 10px }
+form { display: flex; flex-wrap: wrap; gap: 14px; align-items: end }
+label { display: grid; gap: 5px; min-width: 0 }
+input,select,button,textarea { font: inherit; max-width: 100% }
+input,select,textarea { border: 1px solid #cdd4dc; border-radius: 6px; padding: 7px; background: white }
+button { background: #c8420d; color: white; border: 0; border-radius: 6px; padding: 8px 16px; cursor: pointer }
+button:disabled { opacity: .65; cursor: wait }
+textarea { display: block; width: 100%; min-height: 110px; margin-bottom: 10px }
+pre, #downloads { overflow-wrap: anywhere; white-space: pre-wrap }
+#downloads { max-height: 320px; overflow: auto; padding-left: 24px }
+#downloads:empty { display: none }
+a { color: #085da3 }
+@media(max-width: 650px) {
+  .layout { grid-template-columns: 1fr }
+  nav { display: flex; flex-wrap: wrap; border-right: 0 }
+  main, section { padding: 14px }
+}
+</style>
+<header>白菜的小工具</header>
+<div class="layout">
+<nav aria-label="工具导航">
+  <a href="#openid" aria-current="location">OpenID 拆分</a>
+  <a href="#formatter">每行数据加逗号</a>
+  <a href="https://baicaige.github.io/excel-splitter/">Excel 拆分</a>
+  <a href="zhengjianzhao.html">证件照排版</a>
+  <a href="mima.html">随机密码</a>
+</nav>
+<main>
+  <section id="openid">
+    <h1>OpenID 拆分</h1>
+    <form id="split">
+      <label>微信粉丝 CSV <input id="csv" type="file" accept=".csv,text/csv" required></label>
+      <label>每个 TXT 的条数
+        <select id="size"><option>100</option><option>200</option><option selected>500</option><option>1000</option><option>2000</option><option>3000</option><option>5000</option><option>10000</option><option>15000</option><option>20000</option><option>30000</option><option>50000</option><option>100000</option></select>
+      </label>
+      <button id="splitBtn" type="submit">拆分 TXT</button>
+    </form>
+    <p id="status" role="status">文件在浏览器本地处理。</p>
+    <ol id="downloads"></ol>
+  </section>
+  <section id="formatter">
+    <h2>每行数据加逗号</h2>
+    <textarea id="input" aria-label="原始文本" placeholder="请输入数据，每行一个"></textarea>
+    <button id="formatBtn" type="button">格式化并复制</button>
+    <pre id="output"></pre>
+  </section>
+</main>
+</div>
+<script>
+  // Quoted CSV fields can contain commas, line breaks and escaped quotes.
+  function* csvRows(text) {
+    const token = /(?:"((?:[^"]|"")*)"|([^",\r\n]*))(,|\r\n|\r|\n|$)/y;
+    let row = [];
+    while (token.lastIndex < text.length) {
+      const match = token.exec(text);
+      if (!match) throw new Error("CSV 格式有误，请重新导出。");
+      row.push(match[1] === undefined ? match[2] : match[1].replace(/""/g, '"'));
+      if (match[3] !== ",") {
+        yield row;
+        row = [];
       }
     }
+    if (row.length) yield [...row, ""];
+  }
 
-    @media (max-width: 600px) {
-      .shell {
-        width: min(100% - 20px, 1120px);
-        padding-top: 10px;
-      }
-
-      .hero-main,
-      .hero-side,
-      .formatter,
-      .tool-card {
-        padding: 18px;
-      }
-
-      .subtitle {
-        font-size: 17px;
-      }
+  function extractOpenIds(text) {
+    const rows = csvRows(text.replace(/^\uFEFF/, ""));
+    const header = rows.next().value || [];
+    const col = header.findIndex(value => value.trim().toLowerCase() === "openid");
+    if (col < 0) throw new Error("CSV 缺少 openid 列。");
+    const ids = [];
+    for (const row of rows) {
+      const id = row[col]?.trim();
+      if (!id) continue;
+      if (/[\r\n]/.test(id)) throw new Error("OpenID 字段包含换行。");
+      ids.push(id);
     }
-  </style>
-</head>
-<body>
-  <main class="shell">
-    <section class="hero" aria-labelledby="pageTitle">
-      <div class="hero-main">
-        <p class="eyebrow">日常高频 · 打开就用</p>
-        <h1 id="pageTitle">白菜的小工具</h1>
-        <p class="subtitle">把零散的小需求放在一个入口里：文本格式化、Excel 拆分、证件照排版、随机密码。</p>
-      </div>
-      <aside class="hero-side" aria-label="推荐工具">
-        <span class="badge">新工具</span>
-        <strong>Excel 按列拆分</strong>
-        <p>按 A 列或指定列拆分为多个 Excel，浏览器本地处理，不上传表格。</p>
-      </aside>
-    </section>
+    if (!ids.length) throw new Error("没有可导出的 OpenID。");
+    return ids;
+  }
 
-    <section class="formatter" aria-labelledby="formatTitle">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow" style="color: var(--blue)">文本处理</p>
-          <h2 id="formatTitle">每行数据加逗号</h2>
-        </div>
-      </div>
-      <textarea id="input" placeholder="请输入数据，每行一个"></textarea>
-      <button class="primary-button" id="formatBtn" type="button">格式化并复制</button>
-      <div id="output"></div>
-    </section>
+  const downloads = document.getElementById("downloads");
+  const status = document.getElementById("status");
+  const csv = document.getElementById("csv");
+  const size = document.getElementById("size");
+  let urls = [];
 
-    <section class="tools-section" aria-labelledby="toolsTitle">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow" style="color: var(--green)">工具箱</p>
-          <h2 id="toolsTitle">更多工具</h2>
-        </div>
-      </div>
-      <div class="tools-grid">
-        <article class="tool-card featured">
-          <div class="tool-icon">XLS</div>
-          <h3>Excel 拆分工具</h3>
-          <p>按列值拆分数据表，批量导出 `值_行数.xlsx`。</p>
-          <a href="https://baicaige.github.io/excel-splitter/">打开工具</a>
-        </article>
-        <article class="tool-card">
-          <div class="tool-icon">ID</div>
-          <h3>证件照排版工具</h3>
-          <p>上传证件照，按常见尺寸排版，支持图片和 PDF 下载。</p>
-          <a href="https://baicaige.github.io/format-tool/zhengjianzhao.html">打开工具</a>
-        </article>
-        <article class="tool-card">
-          <div class="tool-icon">PWD</div>
-          <h3>随机密码工具</h3>
-          <p>快速生成指定长度和字符类型的随机密码。</p>
-          <a href="https://baicaige.github.io/format-tool/mima.html">打开工具</a>
-        </article>
-      </div>
-    </section>
-  </main>
+  function clearDownloads() {
+    urls.forEach(url => URL.revokeObjectURL(url));
+    urls = [];
+    downloads.replaceChildren();
+  }
 
-  <script>
+  for (const control of [csv, size]) {
+    control.addEventListener("change", () => {
+      clearDownloads();
+      status.textContent = "等待拆分。";
+    });
+  }
+
+  document.getElementById("split").addEventListener("submit", async event => {
+    event.preventDefault();
+    const button = document.getElementById("splitBtn");
+    const file = csv.files[0];
+    const batch = Number(size.value);
+    if (!file || !Number.isInteger(batch) || batch < 1) return;
+    clearDownloads();
+    button.disabled = csv.disabled = size.disabled = true;
+    status.textContent = "正在读取 CSV…";
+    try {
+      const ids = extractOpenIds(await file.text());
+      const base = file.name.replace(/\.csv$/i, "");
+      const list = document.createDocumentFragment();
+      for (let start = 0; start < ids.length; start += batch) {
+        const end = Math.min(start + batch, ids.length);
+        const data = ids.slice(start, end).join("\n") + "\n";
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(new Blob([data], { type: "text/plain;charset=utf-8" }));
+        urls.push(link.href);
+        link.download = link.textContent = `${base}-${start + 1}-${end}.txt`;
+        const item = document.createElement("li");
+        item.append(link);
+        list.append(item);
+      }
+      downloads.append(list);
+      status.textContent = `${ids.length} 条 OpenID，共 ${urls.length} 个 TXT。`;
+    } catch (error) {
+      clearDownloads();
+      status.textContent = error.message;
+    } finally {
+      button.disabled = csv.disabled = size.disabled = false;
+    }
+  });
+
     async function formatAndCopy() {
       const input = document.getElementById("input").value.trim();
       if (!input) {
